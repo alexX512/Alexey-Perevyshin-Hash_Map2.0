@@ -2,10 +2,13 @@
 #include <list>
 #include <vector>
 
-template<class KeyType, class ValueType, class Hash = std::hash<KeyType>> 
+template<class KeyType, class ValueType, class Hash = std::hash<KeyType>>
 class HashMap {
 private:
-    std::vector<std::pair<KeyType, ValueType>> all_keys;
+    const int initial_size = 4;
+    typedef std::pair<KeyType, ValueType> pair_key_value;
+    typedef std::pair<const KeyType, ValueType> pair_const_key_value;
+    std::vector<pair_key_value> all_keys;
     std::vector<std::vector<int>> index_hashes;
     std::vector<std::pair<int, int>> keys_in_table;
     Hash hasher;
@@ -36,7 +39,7 @@ private:
     }
 
     bool need_rebuild() {
-        return all_keys.size() * 4 > index_hashes.size();
+        return all_keys.size() * initial_size > index_hashes.size();
     }
 
     void rebuild() {
@@ -79,12 +82,12 @@ public:
             return *this;
         }
 
-        std::pair<const KeyType, ValueType>& operator*() {
-            return reinterpret_cast<std::pair<const KeyType, ValueType>&>(now->all_keys[id]);
+        pair_const_key_value& operator*() {
+            return reinterpret_cast<pair_const_key_value&>(now->all_keys[id]);
         }
 
-        std::pair<const KeyType, ValueType>* operator->() {
-            return reinterpret_cast<std::pair<const KeyType, ValueType>*>(&now->all_keys[id]);
+        pair_const_key_value* operator->() {
+            return reinterpret_cast<pair_const_key_value*>(&now->all_keys[id]);
         }
 
         bool operator==(iterator other) const {
@@ -125,12 +128,12 @@ public:
             return *this;
         }
 
-        const std::pair<const KeyType, ValueType>& operator*() const {
-            return reinterpret_cast<const std::pair<const KeyType, ValueType>&>(now->all_keys[id]);
+        const pair_const_key_value& operator*() const {
+            return reinterpret_cast<const pair_const_key_value&>(now->all_keys[id]);
         }
 
-        const std::pair<const KeyType, ValueType>* operator->() const {
-            return reinterpret_cast<const std::pair<const KeyType, ValueType>*>(&now->all_keys[id]);
+        const pair_const_key_value* operator->() const {
+            return reinterpret_cast<const pair_const_key_value*>(&now->all_keys[id]);
         }
 
         bool operator==(const_iterator other) const {
@@ -143,21 +146,21 @@ public:
     };
 
     HashMap(const Hash& _hasher = Hash()) : hasher(_hasher) {
-        index_hashes.resize(4);
+        index_hashes.resize(initial_size);
     }
 
     template<typename Iter>
     HashMap(Iter _begin, Iter _end, const Hash& _hasher = Hash()) {
-        index_hashes.resize(4);
+        index_hashes.resize(initial_size);
         hasher = _hasher;
-        while (!(_begin == _end)) {
+        while (_begin != _end) {
             insert(*_begin);
             ++_begin;
         }
     }
 
-    HashMap(std::initializer_list<std::pair<KeyType, ValueType>> list, const Hash& _hasher = Hash()) {
-        index_hashes.resize(4);
+    HashMap(std::initializer_list<pair_key_value> list, const Hash& _hasher = Hash()) {
+        index_hashes.resize(initial_size);
         hasher = _hasher;
         for (auto i : list)
             insert(i);
@@ -175,7 +178,7 @@ public:
         return hasher;
     }
 
-    void insert(std::pair<KeyType, ValueType> new_element) {
+    void insert(pair_key_value new_element) {
         if (need_rebuild()) {
             rebuild();
         }
@@ -252,7 +255,7 @@ public:
         all_keys.clear();
         keys_in_table.clear();
         index_hashes.clear();
-        index_hashes.resize(4);
+        index_hashes.resize(initial_size);
     }
 
 };
