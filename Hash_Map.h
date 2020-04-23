@@ -6,9 +6,10 @@ template<class KeyType, class ValueType, class Hash = std::hash<KeyType>>
 class HashMap {
 private:
     const int initial_size = 4;
-    typedef std::pair<KeyType, ValueType> pair_key_value;
-    typedef std::pair<const KeyType, ValueType> pair_const_key_value;
-    std::vector<pair_key_value> all_keys;
+    const int new_size = 2;
+    typedef std::pair<KeyType, ValueType> PairKeyValue;
+    typedef std::pair<const KeyType, ValueType> PairConstKeyValue;
+    std::vector<PairKeyValue> all_keys;
     std::vector<std::vector<int>> index_hashes;
     std::vector<std::pair<int, int>> keys_in_table;
     Hash hasher;
@@ -46,7 +47,7 @@ private:
         size_t last_size = index_hashes.size();
         auto tmp = all_keys;
         clear();
-        index_hashes.resize(last_size * 2);
+        index_hashes.resize(last_size * new_size);
         for (const auto i : tmp) {
             insert(i);
         }
@@ -82,12 +83,12 @@ public:
             return *this;
         }
 
-        pair_const_key_value& operator*() {
-            return reinterpret_cast<pair_const_key_value&>(now->all_keys[id]);
+        PairConstKeyValue& operator*() {
+            return reinterpret_cast<PairConstKeyValue&>(now->all_keys[id]);
         }
 
-        pair_const_key_value* operator->() {
-            return reinterpret_cast<pair_const_key_value*>(&now->all_keys[id]);
+        PairConstKeyValue* operator->() {
+            return reinterpret_cast<PairConstKeyValue*>(&now->all_keys[id]);
         }
 
         bool operator==(iterator other) const {
@@ -159,7 +160,7 @@ public:
         }
     }
 
-    HashMap(std::initializer_list<pair_key_value> list, const Hash& _hasher = Hash()) {
+    HashMap(std::initializer_list<PairKeyValue> list, const Hash& _hasher = Hash()) {
         index_hashes.resize(initial_size);
         hasher = _hasher;
         for (auto i : list)
@@ -178,7 +179,7 @@ public:
         return hasher;
     }
 
-    void insert(pair_key_value new_element) {
+    void insert(PairKeyValue new_element) {
         if (need_rebuild()) {
             rebuild();
         }
